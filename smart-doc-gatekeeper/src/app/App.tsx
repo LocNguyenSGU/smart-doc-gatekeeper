@@ -1,12 +1,62 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Settings } from 'lucide-react';
+import type { ExtensionMessage } from '@/shared/types';
 import { useAppStore } from './store/appStore';
 import InputSidebar from './components/InputSidebar';
 import ProgressView from './components/ProgressView';
 import ResultsView from './components/ResultsView';
 
 const App: React.FC = () => {
-  const { screen, toggleDarkMode, isDarkMode } = useAppStore();
+  const { 
+    screen, 
+    toggleDarkMode, 
+    isDarkMode,
+    setProgress,
+    setResult,
+    setError,
+    setScreen,
+    setIsAnalyzing,
+    addRealtimeResult
+  } = useAppStore();
+
+  // Listen for messages from background script
+  useEffect(() => {
+    const handleMessage = (message: ExtensionMessage) => {
+      console.log('App received message:', message);
+      
+      switch (message.type) {
+        case 'PROGRESS_UPDATE':
+          setProgress(message.payload);
+          if (screen !== 'progress') {
+            setScreen('progress');
+          }
+          break;
+        
+        case 'REALTIME_RESULT':
+          addRealtimeResult(message.payload.result);
+          break;
+        
+        case 'ANALYSIS_COMPLETE':
+          setResult(message.payload);
+          setIsAnalyzing(false);
+          setScreen('results');
+          break;
+        
+        case 'ANALYSIS_ERROR':
+          setError(message.payload.error);
+          setIsAnalyzing(false);
+          break;
+      }
+    };
+
+    if (chrome?.runtime?.onMessage) {
+      chrome.runtime.onMessage.addListener(handleMessage);
+      
+      return () => {
+        chrome.runtime.onMessage.removeListener(handleMessage);
+      };
+    }
+  }, [screen, setProgress, setResult, setError, setScreen, setIsAnalyzing, addRealtimeResult]);
 
   const openOptions = () => {
     if (chrome?.runtime?.openOptionsPage) {

@@ -12,12 +12,13 @@ import { createAIAdapter } from '@/modules/ai';
 let isAnalyzing = false;
 let abortController: AbortController | null = null;
 let activeTabId: number | null = null;
+let extensionTabId: number | null = null; // Track the extension's tab ID
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener(
   (message: ExtensionMessage, sender, sendResponse) => {
     if (message.type === 'START_ANALYSIS') {
-      activeTabId = sender.tab?.id || null;
+      activeTabId = extensionTabId || sender.tab?.id || null;
       handleStartAnalysis(message);
       sendResponse({ ok: true });
     } else if (message.type === 'CANCEL_ANALYSIS') {
@@ -141,5 +142,8 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Open app tab when extension icon is clicked
 chrome.action.onClicked.addListener(() => {
-  chrome.tabs.create({ url: 'src/app/index.html' });
+  const url = chrome.runtime.getURL('src/app/index.html');
+  chrome.tabs.create({ url }, (tab) => {
+    extensionTabId = tab.id || null;
+  });
 });
