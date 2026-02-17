@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Clock, Trash2, ArrowRight, History, RefreshCw } from 'lucide-react';
+import { Search, Clock, Trash2, ArrowRight, History, RefreshCw, Eye } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 
 const InputSidebar: React.FC = () => {
@@ -11,6 +11,7 @@ const InputSidebar: React.FC = () => {
     setUrl,
     setIssueDescription,
     selectFromHistory,
+    viewHistoryResult,
     clearHistory,
     startNewAnalysis,
     addToHistory,
@@ -220,41 +221,54 @@ const InputSidebar: React.FC = () => {
                 </button>
               </div>
               {analysisHistory.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    selectFromHistory(item);
-                    setShowHistory(false);
-                  }}
-                  className="w-full text-left p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors group"
-                  disabled={isAnalyzing}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                        {new URL(item.url).hostname}
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                        {item.issueDescription}
-                      </p>
-                      <div className="flex items-center space-x-3 mt-2">
-                        <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
-                          <Clock size={10} />
-                          <span>{formatTimeAgo(item.timestamp)}</span>
+                <div key={item.id} className="space-y-2">
+                  <button
+                    onClick={() => {
+                      selectFromHistory(item);
+                      setShowHistory(false);
+                    }}
+                    className="w-full text-left p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors group"
+                    disabled={isAnalyzing}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          {new URL(item.url).hostname}
+                        </p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                          {item.issueDescription}
+                        </p>
+                        <div className="flex items-center space-x-3 mt-2">
+                          <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                            <Clock size={10} />
+                            <span>{formatTimeAgo(item.timestamp)}</span>
+                          </div>
+                          {item.resultCount !== undefined && (
+                            <span className="text-xs text-blue-600 dark:text-blue-400">
+                              {item.resultCount} results
+                            </span>
+                          )}
                         </div>
-                        {item.resultCount !== undefined && (
-                          <span className="text-xs text-blue-600 dark:text-blue-400">
-                            {item.resultCount} results
-                          </span>
-                        )}
                       </div>
+                      <ArrowRight 
+                        size={14} 
+                        className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 ml-2 mt-1 transition-colors" 
+                      />
                     </div>
-                    <ArrowRight 
-                      size={14} 
-                      className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 ml-2 mt-1 transition-colors" 
-                    />
-                  </div>
-                </button>
+                  </button>
+                  {item.result && (
+                    <button
+                      onClick={() => {
+                        viewHistoryResult(item);
+                        setShowHistory(false);
+                      }}
+                      className="w-full text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 p-2 rounded-lg transition-colors flex items-center justify-center space-x-1"
+                    >
+                      <Eye size={14} />
+                      <span>View Results ({item.resultCount} found)</span>
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           )}

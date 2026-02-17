@@ -43,8 +43,8 @@ const App: React.FC = () => {
           setResult(message.payload);
           setIsAnalyzing(false);
           setScreen('results');
-          // Auto-save to history
-          addToHistory(url, issueDescription, message.payload.results?.length || 0);
+          // Auto-save to history with full results
+          addToHistory(url, issueDescription, message.payload.results?.length || 0, message.payload);
           break;
         
         case 'ANALYSIS_ERROR':

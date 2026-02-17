@@ -7,6 +7,7 @@ interface HistoryItem {
   issueDescription: string;
   timestamp: Date;
   resultCount?: number;
+  result?: FilterResult; // Store full results for viewing
 }
 
 interface AppState {
@@ -55,8 +56,9 @@ interface AppState {
   clearRealtimeResults: () => void;
   
   // History actions
-  addToHistory: (url: string, issueDescription: string, resultCount?: number) => void;
+  addToHistory: (url: string, issueDescription: string, resultCount?: number, result?: FilterResult) => void;
   selectFromHistory: (item: HistoryItem) => void;
+  viewHistoryResult: (item: HistoryItem) => void;
   clearHistory: () => void;
   
   // Reset
@@ -216,6 +218,18 @@ export const useAppStore = create<AppState>((set, get) => ({
       issueDescription: item.issueDescription,
       screen: 'input',
     });
+  },
+  
+  viewHistoryResult: (item) => {
+    if (item.result) {
+      set({
+        result: item.result,
+        url: item.url,
+        issueDescription: item.issueDescription,
+        screen: 'results',
+        selectedUrls: new Set(item.result.results.map(r => r.url)),
+      });
+    }
   },
   
   clearHistory: () => {
