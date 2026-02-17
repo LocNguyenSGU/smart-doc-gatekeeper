@@ -11,12 +11,15 @@ const App: React.FC = () => {
     screen, 
     toggleDarkMode, 
     isDarkMode,
+    url,
+    issueDescription,
     setProgress,
     setResult,
     setError,
     setScreen,
     setIsAnalyzing,
-    addRealtimeResult
+    addRealtimeResult,
+    addToHistory
   } = useAppStore();
 
   // Listen for messages from background script
@@ -40,6 +43,8 @@ const App: React.FC = () => {
           setResult(message.payload);
           setIsAnalyzing(false);
           setScreen('results');
+          // Auto-save to history
+          addToHistory(url, issueDescription, message.payload.results?.length || 0);
           break;
         
         case 'ANALYSIS_ERROR':
@@ -56,7 +61,7 @@ const App: React.FC = () => {
         chrome.runtime.onMessage.removeListener(handleMessage);
       };
     }
-  }, [screen, setProgress, setResult, setError, setScreen, setIsAnalyzing, addRealtimeResult]);
+  }, [screen, setProgress, setResult, setError, setScreen, setIsAnalyzing, addRealtimeResult, addToHistory, url, issueDescription]);
 
   const openOptions = () => {
     if (chrome?.runtime?.openOptionsPage) {

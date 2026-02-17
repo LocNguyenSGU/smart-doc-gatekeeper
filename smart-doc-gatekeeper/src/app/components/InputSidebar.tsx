@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Clock, Trash2, ArrowRight } from 'lucide-react';
+import { Search, Clock, Trash2, ArrowRight, History, RefreshCw } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 
 const InputSidebar: React.FC = () => {
@@ -15,6 +15,8 @@ const InputSidebar: React.FC = () => {
     startNewAnalysis,
     addToHistory,
   } = useAppStore();
+
+  const [showHistory, setShowHistory] = useState(false);
 
   const [urlError, setUrlError] = useState('');
   const [issueError, setIssueError] = useState('');
@@ -170,7 +172,7 @@ const InputSidebar: React.FC = () => {
         >
           {isAnalyzing ? (
             <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <RefreshCw size={18} className="animate-spin" />
               <span>Analyzing...</span>
             </>
           ) : (
@@ -186,54 +188,76 @@ const InputSidebar: React.FC = () => {
       {/* Analysis History */}
       {analysisHistory.length > 0 && (
         <div className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Recent Analyses
-            </h3>
+          <div className="mb-4">
             <button
-              onClick={clearHistory}
-              className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 flex items-center space-x-1"
+              onClick={() => setShowHistory(!showHistory)}
+              className="flex items-center justify-between w-full text-left p-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
             >
-              <Trash2 size={12} />
-              <span>Clear</span>
+              <div className="flex items-center space-x-2">
+                <History size={16} className="text-gray-600 dark:text-gray-400" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Recent Analyses ({analysisHistory.length})
+                </span>
+              </div>
+              <ArrowRight 
+                size={14} 
+                className={`text-gray-400 transition-transform ${
+                  showHistory ? 'rotate-90' : ''
+                }`} 
+              />
             </button>
           </div>
-          <div className="space-y-2">
-            {analysisHistory.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => selectFromHistory(item)}
-                className="w-full text-left p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors group"
-                disabled={isAnalyzing}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {new URL(item.url).hostname}
-                    </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                      {item.issueDescription}
-                    </p>
-                    <div className="flex items-center space-x-3 mt-2">
-                      <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
-                        <Clock size={10} />
-                        <span>{formatTimeAgo(item.timestamp)}</span>
+          
+          {showHistory && (
+            <div className="space-y-2 max-h-64 overflow-y-auto scrollbar-thin scrollbar-track-gray-100 dark:scrollbar-track-gray-800 scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 pr-2">
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={clearHistory}
+                  className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 flex items-center space-x-1 transition-colors"
+                >
+                  <Trash2 size={12} />
+                  <span>Clear All</span>
+                </button>
+              </div>
+              {analysisHistory.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    selectFromHistory(item);
+                    setShowHistory(false);
+                  }}
+                  className="w-full text-left p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors group"
+                  disabled={isAnalyzing}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {new URL(item.url).hostname}
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                        {item.issueDescription}
+                      </p>
+                      <div className="flex items-center space-x-3 mt-2">
+                        <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                          <Clock size={10} />
+                          <span>{formatTimeAgo(item.timestamp)}</span>
+                        </div>
+                        {item.resultCount !== undefined && (
+                          <span className="text-xs text-blue-600 dark:text-blue-400">
+                            {item.resultCount} results
+                          </span>
+                        )}
                       </div>
-                      {item.resultCount && (
-                        <span className="text-xs text-blue-600 dark:text-blue-400">
-                          {item.resultCount} results
-                        </span>
-                      )}
                     </div>
+                    <ArrowRight 
+                      size={14} 
+                      className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 ml-2 mt-1 transition-colors" 
+                    />
                   </div>
-                  <ArrowRight 
-                    size={14} 
-                    className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 ml-2 mt-1 transition-colors" 
-                  />
-                </div>
-              </button>
-            ))}
-          </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

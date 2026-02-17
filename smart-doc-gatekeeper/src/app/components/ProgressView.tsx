@@ -102,10 +102,10 @@ const ProgressView: React.FC = () => {
   }
 
   return (
-    <div className="h-full bg-white dark:bg-gray-900 overflow-hidden">
-      <div className="max-w-4xl mx-auto p-8 h-full">
-        {/* Header */}
-        <div className="mb-8">
+    <div className="h-full bg-white dark:bg-gray-900 flex flex-col">
+      <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
+        {/* Header - Fixed at top */}
+        <div className="flex-shrink-0 p-8 pb-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Analyzing Documentation
@@ -126,17 +126,17 @@ const ProgressView: React.FC = () => {
           </div>
         </div>
 
-        {/* Progress Steps */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between">
+        {/* Progress Steps - Compact horizontal version */}
+        <div className="flex-shrink-0 px-8 pb-4">
+          <div className="flex items-center justify-center space-x-8">
             {steps.map((step, index) => {
               const Icon = step.icon;
               return (
                 <div key={step.id} className="flex items-center">
-                  <div className="flex flex-col items-center">
+                  <div className="flex items-center space-x-2">
                     <div
                       className={`
-                        w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors
+                        w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors
                         ${step.completed 
                           ? 'bg-green-100 dark:bg-green-900/30 border-green-500 text-green-600 dark:text-green-400'
                           : step.active
@@ -146,26 +146,21 @@ const ProgressView: React.FC = () => {
                       `}
                     >
                       {step.completed ? (
-                        <CheckCircle size={20} />
+                        <CheckCircle size={16} />
                       ) : (
-                        <Icon size={20} />
+                        <Icon size={16} />
                       )}
                     </div>
-                    <div className="mt-3 text-center max-w-32">
-                      <p className={`text-sm font-medium ${
-                        step.active || step.completed 
-                          ? 'text-gray-900 dark:text-white' 
-                          : 'text-gray-500 dark:text-gray-400'
-                      }`}>
-                        {step.name}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {step.description}
-                      </p>
-                    </div>
+                    <span className={`text-sm font-medium ${
+                      step.active || step.completed 
+                        ? 'text-gray-900 dark:text-white' 
+                        : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {step.name}
+                    </span>
                   </div>
                   {index < steps.length - 1 && (
-                    <div className={`flex-1 h-0.5 mx-4 min-w-20 ${
+                    <div className={`w-12 h-0.5 mx-4 ${
                       step.completed 
                         ? 'bg-green-500' 
                         : 'bg-gray-200 dark:bg-gray-700'
@@ -177,8 +172,8 @@ const ProgressView: React.FC = () => {
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mb-8">
+        {/* Progress Bar - Fixed */}
+        <div className="flex-shrink-0 px-8 pb-6">
           <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
             <span>{progress.message}</span>
             <span>{progress.progress}% complete</span>
@@ -196,9 +191,9 @@ const ProgressView: React.FC = () => {
           )}
         </div>
 
-        {/* Real-time Results */}
+        {/* Live Results - Takes remaining space with scroll */}
         {realtimeResults.length > 0 && (
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 px-8 pb-8 overflow-hidden">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Live Results ({realtimeResults.length})
@@ -207,8 +202,8 @@ const ProgressView: React.FC = () => {
                 Results appear as they're analyzed
               </div>
             </div>
-            <div className="space-y-4">
-              {realtimeResults.map((result, index) => (
+            <div className="h-full overflow-y-auto pr-4 space-y-4 scrollbar-thin scrollbar-track-gray-100 dark:scrollbar-track-gray-800 scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+              {realtimeResults.slice().reverse().map((result, index) => (
                 <div
                   key={`${result.url}-${index}`}
                   className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm animate-fadeIn"
@@ -224,7 +219,7 @@ const ProgressView: React.FC = () => {
                         <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate pr-4">
                           {result.title}
                         </h4>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 flex-shrink-0">
                           <span className={`text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 ${getRelevanceColor(result.relevance)}`}>
                             {result.category}
                           </span>
@@ -233,18 +228,18 @@ const ProgressView: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         {result.description}
                       </p>
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 italic flex-1 pr-4">
                           {result.reason}
                         </p>
                         <a
                           href={result.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center space-x-1"
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center space-x-1 flex-shrink-0"
                         >
                           <FileText size={12} />
                           <span>View</span>
