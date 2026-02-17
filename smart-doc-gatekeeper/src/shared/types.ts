@@ -83,12 +83,21 @@ export interface AnalysisErrorMessage {
   payload: { error: string };
 }
 
+export interface RealtimeResultMessage {
+  type: 'REALTIME_RESULT';
+  payload: {
+    result: ScoredUrl;
+    batchProgress: { current: number; total: number };
+  };
+}
+
 export type ExtensionMessage =
   | StartAnalysisMessage
   | CancelAnalysisMessage
   | ProgressUpdateMessage
   | AnalysisCompleteMessage
-  | AnalysisErrorMessage;
+  | AnalysisErrorMessage
+  | RealtimeResultMessage;
 
 // Settings stored in chrome.storage
 export interface ExtensionSettings {

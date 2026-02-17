@@ -10,7 +10,12 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "keywords": ["chrome-extension", "documentation", "ai", "notebooklm"],
+  "keywords": [
+    "chrome-extension",
+    "documentation",
+    "ai",
+    "notebooklm"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
@@ -29,6 +34,7 @@
   },
   "dependencies": {
     "fast-xml-parser": "^5.3.6",
+    "lucide-react": "^0.570.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "zustand": "^5.0.11"

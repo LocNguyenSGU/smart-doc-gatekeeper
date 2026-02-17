@@ -11,6 +11,7 @@ export async function scoreUrlsWithAI(
   urls: UrlMetadata[],
   issueDescription: string,
   onProgress?: (scored: number, total: number) => void,
+  onRealtimeResult?: (result: ScoredUrl, batchProgress: { current: number; total: number }) => void,
 ): Promise<ScoredUrl[]> {
   const allScored: ScoredUrl[] = [];
   const batchSize = FILTER_CONFIG.BATCH_SIZE;
@@ -46,7 +47,16 @@ export async function scoreUrlsWithAI(
       }
     }
     
-    allScored.push(...scored);
+    // Send individual results as they come in
+    if (onRealtimeResult) {
+      for (const result of scored) {
+        onRealtimeResult(result, { current: allScored.length + 1, total: urls.length });
+        allScored.push(result);
+      }
+    } else {
+      allScored.push(...scored);
+    }
+    
     onProgress?.(allScored.length, urls.length);
   }
 

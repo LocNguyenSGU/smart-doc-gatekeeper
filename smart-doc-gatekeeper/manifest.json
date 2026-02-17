@@ -6,14 +6,14 @@
   "permissions": [
     "storage",
     "activeTab",
-    "clipboardWrite"
+    "clipboardWrite",
+    "tabs"
   ],
   "host_permissions": [
     "https://*/*",
     "http://localhost/*"
   ],
   "action": {
-    "default_popup": "src/popup/index.html",
     "default_icon": {
       "16": "public/icons/icon16.svg",
       "48": "public/icons/icon48.svg",

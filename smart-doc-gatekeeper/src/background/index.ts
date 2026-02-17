@@ -2,6 +2,7 @@ import type {
   ExtensionMessage,
   StartAnalysisMessage,
   FilterResult,
+  RealtimeResultMessage,
 } from '@/shared/types';
 import { getSettings } from '@/shared/storage';
 import { crawl } from '@/modules/crawler';
@@ -10,11 +11,13 @@ import { createAIAdapter } from '@/modules/ai';
 
 let isAnalyzing = false;
 let abortController: AbortController | null = null;
+let activeTabId: number | null = null;
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener(
-  (message: ExtensionMessage, _sender, sendResponse) => {
+  (message: ExtensionMessage, sender, sendResponse) => {
     if (message.type === 'START_ANALYSIS') {
+      activeTabId = sender.tab?.id || null;
       handleStartAnalysis(message);
       sendResponse({ ok: true });
     } else if (message.type === 'CANCEL_ANALYSIS') {
@@ -24,6 +27,20 @@ chrome.runtime.onMessage.addListener(
     return true; // Keep message channel open for async
   }
 );
+
+// Forward realtime results to active tab
+function sendRealtimeResult(message: RealtimeResultMessage) {
+  if (activeTabId) {
+    chrome.tabs.sendMessage(activeTabId, message).catch(() => {
+      // Tab may be closed or no content script listening, ignore
+    });
+  }
+  
+  // Also send to popup if it's listening
+  chrome.runtime.sendMessage(message).catch(() => {
+    // Popup may be closed, ignore
+  });
+}
 
 function sendProgress(step: 'crawling' | 'filtering' | 'done', message: string, urlsFound: number, progress: number) {
   chrome.runtime.sendMessage({
@@ -76,6 +93,13 @@ async function handleStartAnalysis(message: StartAnalysisMessage) {
         const pct = 50 + Math.round((scored / total) * 40);
         sendProgress('filtering', `AI đã đánh giá ${scored}/${total} URLs...`, crawlResult.totalFound, pct);
       },
+      (result, batchProgress) => {
+        // Send realtime results to active tab
+        sendRealtimeResult({
+          type: 'REALTIME_RESULT',
+          payload: { result, batchProgress },
+        });
+      },
     );
 
     if (abortController.signal.aborted) return;
@@ -113,4 +137,9 @@ function handleCancel() {
 // Keep service worker alive
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Smart Doc Gatekeeper installed');
+});
+
+// Open app tab when extension icon is clicked
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.create({ url: 'src/app/index.html' });
 });
