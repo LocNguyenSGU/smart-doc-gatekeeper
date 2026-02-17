@@ -39,12 +39,6 @@ const ResultsView: React.FC = () => {
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  React.useEffect(() => {
-    if (result) {
-      addToHistory(url, issueDescription, result.results.length);
-    }
-  }, [result]);
-
   const filteredAndSortedResults = useMemo(() => {
     if (!result) return [];
 

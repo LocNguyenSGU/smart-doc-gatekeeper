@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Clock, Trash2, ArrowRight, History, RefreshCw, Eye } from 'lucide-react';
+import { Search, Clock, Trash2, ArrowRight, History, RefreshCw, Eye, BarChart3 } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 
 const InputSidebar: React.FC = () => {
@@ -8,6 +8,7 @@ const InputSidebar: React.FC = () => {
     issueDescription,
     isAnalyzing,
     analysisHistory,
+    result,
     setUrl,
     setIssueDescription,
     selectFromHistory,
@@ -15,6 +16,7 @@ const InputSidebar: React.FC = () => {
     clearHistory,
     startNewAnalysis,
     addToHistory,
+    setScreen,
   } = useAppStore();
 
   const [showHistory, setShowHistory] = useState(false);
@@ -185,6 +187,19 @@ const InputSidebar: React.FC = () => {
           )}
         </button>
       </div>
+
+      {/* View Last Results Button - when results exist */}
+      {result && (
+        <div className="mb-6">
+          <button
+            onClick={() => setScreen('results')}
+            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 font-medium rounded-lg transition-colors border border-green-200 dark:border-green-800"
+          >
+            <BarChart3 size={18} />
+            <span>View Last Results ({result.results.length} found)</span>
+          </button>
+        </div>
+      )}
 
       {/* Analysis History */}
       {analysisHistory.length > 0 && (
