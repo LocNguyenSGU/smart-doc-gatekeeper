@@ -193,13 +193,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   clearRealtimeResults: () => set({ realtimeResults: [] }),
   
   // History actions
-  addToHistory: (url, issueDescription, resultCount) => {
+  addToHistory: (url, issueDescription, resultCount, result) => {
     const newItem: HistoryItem = {
       id: Date.now().toString(),
       url,
       issueDescription: issueDescription.substring(0, 100), // Truncate for display
       timestamp: new Date(),
       resultCount,
+      result,
     };
     
     const current = get().analysisHistory;
