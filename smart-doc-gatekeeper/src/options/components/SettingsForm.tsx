@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { AIProviderName, ExtensionSettings } from '@/shared/types';
-import { PROVIDER_MODELS, PROVIDER_ENDPOINTS, DEFAULT_SETTINGS } from '@/shared/constants';
+import { PROVIDER_MODELS, PROVIDER_ENDPOINTS, PROVIDER_DESCRIPTIONS, DEFAULT_SETTINGS } from '@/shared/constants';
+import type { ModelInfo } from '@/shared/constants';
 import { getSettings, saveSettings } from '@/shared/storage';
 import { createAIAdapter } from '@/modules/ai';
 
@@ -10,6 +11,18 @@ const PROVIDER_LABELS: Record<AIProviderName, string> = {
   gemini: 'Google Gemini',
   deepseek: 'DeepSeek',
   ollama: 'Ollama (Local)',
+};
+
+const TIER_COLORS: Record<ModelInfo['tier'], string> = {
+  flagship: 'text-amber-600 dark:text-amber-400',
+  balanced: 'text-blue-600 dark:text-blue-400',
+  fast: 'text-green-600 dark:text-green-400',
+};
+
+const TIER_LABELS: Record<ModelInfo['tier'], string> = {
+  flagship: '⭐ Pro',
+  balanced: '⚡ Balanced',
+  fast: '🚀 Fast',
 };
 
 type TestStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -33,12 +46,15 @@ export function SettingsForm() {
   // Reset model when provider changes
   const handleProviderChange = (name: AIProviderName) => {
     const models = PROVIDER_MODELS[name];
+    // Pick the first 'balanced' tier model as default, or first overall
+    const defaultModel = models.find(m => m.tier === 'balanced') || models[0];
     setSettings((prev) => ({
       ...prev,
       provider: {
         ...prev.provider,
         name,
-        model: models[0],
+        model: defaultModel.id,
+        apiKey: name === 'ollama' ? '' : prev.provider.apiKey,
         endpoint: name === 'ollama' ? (prev.provider.endpoint || PROVIDER_ENDPOINTS.ollama) : undefined,
       },
     }));
@@ -86,20 +102,32 @@ export function SettingsForm() {
     <form onSubmit={handleSave} className="space-y-5">
       {/* ── AI Provider Section ── */}
       <Card title="AI Provider">
-        {/* Provider */}
+        {/* Provider selector as radio cards */}
         <Label htmlFor="provider">Provider</Label>
-        <select
-          id="provider"
-          value={settings.provider.name}
-          onChange={(e) => handleProviderChange(e.target.value as AIProviderName)}
-          className="input-base"
-        >
+        <div className="grid grid-cols-1 gap-2">
           {(Object.keys(PROVIDER_LABELS) as AIProviderName[]).map((key) => (
-            <option key={key} value={key}>
-              {PROVIDER_LABELS[key]}
-            </option>
+            <button
+              key={key}
+              type="button"
+              onClick={() => handleProviderChange(key)}
+              className={`w-full text-left px-3.5 py-2.5 rounded-lg border-2 transition-all ${
+                settings.provider.name === key
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm">{PROVIDER_LABELS[key]}</span>
+                {settings.provider.name === key && (
+                  <span className="text-blue-500 text-xs">✓</span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                {PROVIDER_DESCRIPTIONS[key]}
+              </p>
+            </button>
           ))}
-        </select>
+        </div>
 
         {/* API Key */}
         {!isOllama && (
@@ -130,25 +158,44 @@ export function SettingsForm() {
           </>
         )}
 
-        {/* Model */}
+        {/* Model — radio-style cards */}
         <Label htmlFor="model">Model</Label>
-        <select
-          id="model"
-          value={settings.provider.model}
-          onChange={(e) =>
-            setSettings((p) => ({
-              ...p,
-              provider: { ...p.provider, model: e.target.value },
-            }))
-          }
-          className="input-base"
-        >
+        <div className="space-y-1.5">
           {PROVIDER_MODELS[settings.provider.name].map((m) => (
-            <option key={m} value={m}>
-              {m}
-            </option>
+            <button
+              key={m.id}
+              type="button"
+              onClick={() =>
+                setSettings((p) => ({
+                  ...p,
+                  provider: { ...p.provider, model: m.id },
+                }))
+              }
+              className={`w-full text-left px-3 py-2 rounded-lg border transition-all flex items-center gap-3 ${
+                settings.provider.model === m.id
+                  ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/10'
+                  : 'border-gray-100 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600'
+              }`}
+            >
+              <div className={`w-3 h-3 rounded-full border-2 shrink-0 ${
+                settings.provider.model === m.id
+                  ? 'border-blue-500 bg-blue-500'
+                  : 'border-gray-300 dark:border-gray-600'
+              }`} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">{m.label}</span>
+                  <span className={`text-[10px] font-semibold ${TIER_COLORS[m.tier]}`}>
+                    {TIER_LABELS[m.tier]}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {m.description}
+                </p>
+              </div>
+            </button>
           ))}
-        </select>
+        </div>
 
         {/* Ollama Endpoint */}
         {isOllama && (
